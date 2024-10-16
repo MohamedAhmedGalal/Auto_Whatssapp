@@ -1,0 +1,75 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct 16 11:54:21 2024
+
+@author: mohamed Galal
+"""
+
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+import subprocess
+
+# Step 1: Open Command Prompt and start Chrome with remote debugging
+chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+chrome_debug_command = [
+    chrome_path,
+    "--remote-debugging-port=9223",
+    "--user-data-dir=C:/ChromeDebug"
+]
+
+# Start Chrome using subprocess
+subprocess.Popen(['cmd.exe', '/c'] + chrome_debug_command)  # Using /c to run and close cmd
+
+# Wait for Chrome to launch and be ready
+time.sleep(30)  # Adjust the sleep time if needed
+
+# Step 2: Set up Chrome options to connect to the existing browser instance
+chrome_options = Options()
+chrome_options.add_experimental_option("debuggerAddress", "localhost:9223")  # Port from the previous command
+
+# Step 3: Specify the path to chromedriver
+webdriver_path = r"D:/chromedriver.exe"  # Update with the actual path to chromedriver
+
+# Step 4: Connect Selenium to the running instance of Chrome
+try:
+    driver = webdriver.Chrome(executable_path=webdriver_path, options=chrome_options)
+    print("Connected to the existing Chrome browser session")
+    wait = WebDriverWait(driver, 120)  # Adjust the timeout value as needed
+
+    # Example: Open WhatsApp Web
+    driver.get("https://web.whatsapp.com")
+
+    # Wait a bit for the page to load
+    time.sleep(5)
+
+    # Search for the user or group
+    user = 'contact_1'  # Change the contact name as needed
+    xpath_1 = "/html/body/div[1]/div/div/div[2]/div[3]/div/div[1]/div/div[2]/div[2]/div/div/p"
+    search_box = wait.until(EC.presence_of_element_located((By.XPATH, xpath_1)))
+
+    search_box.click()
+    search_box.send_keys(user)
+    search_box.send_keys(Keys.ENTER)
+
+    # Wait until the message input box is available
+    message_box_xpath = '//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div[1]/div/div[1]/p'
+    message_box = wait.until(EC.presence_of_element_located((By.XPATH, message_box_xpath)))
+    message_box.click()
+
+    # Send a message
+    message_box.send_keys('Hello, this is an automated second message')
+    message_box.send_keys(Keys.ENTER)
+
+    # Optional: wait a bit before closing the browser
+    time.sleep(5)
+
+except Exception as e:
+    print(f"An error occurred: {e}")
+
+finally:
+    driver.quit()
